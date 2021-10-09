@@ -41,9 +41,9 @@ PROFILES_DIR = os.path.join(ICE_DIR, "profiles")
 FIREFOX_PROFILES_DIR = os.path.join(ICE_DIR, "firefox")
 FIREFOX_FLATPAK_PROFILES_DIR = os.path.expanduser("~/.var/app/org.mozilla.firefox/data/ice/firefox")
 EPIPHANY_PROFILES_DIR = os.path.join(ICE_DIR, "epiphany")
+FALKON_PROFILES_DIR = os.path.join(ICE_DIR, "falkon")
 ICONS_DIR = os.path.join(ICE_DIR, "icons")
-BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_CHROMIUM, BROWSER_TYPE_EPIPHANY, BROWSER_TYPE_JAK = range(
-    5)
+BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_CHROMIUM, BROWSER_TYPE_EPIPHANY, BROWSER_TYPE_FALKON = range(5)
 
 class Browser():
 
@@ -106,7 +106,7 @@ class WebAppLauncher():
 class WebAppManager():
 
     def __init__(self):
-        for directory in [ICE_DIR, APPS_DIR, PROFILES_DIR, FIREFOX_PROFILES_DIR, FIREFOX_FLATPAK_PROFILES_DIR, ICONS_DIR, EPIPHANY_PROFILES_DIR]:
+        for directory in [ICE_DIR, APPS_DIR, PROFILES_DIR, FIREFOX_PROFILES_DIR, FIREFOX_FLATPAK_PROFILES_DIR, ICONS_DIR, EPIPHANY_PROFILES_DIR, FALKON_PROFILES_DIR]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
@@ -145,6 +145,7 @@ class WebAppManager():
         browsers.append(Browser(BROWSER_TYPE_CHROMIUM, "Microsoft Edge", "microsoft-edge", "/usr/bin/microsoft-edge"))
         browsers.append(Browser(BROWSER_TYPE_CHROMIUM, "Ungoogled Chromium (Flatpak)", "/var/lib/flatpak/exports/bin/com.github.Eloston.UngoogledChromium", "/var/lib/flatpak/exports/bin/com.github.Eloston.UngoogledChromium"))
         browsers.append(Browser(BROWSER_TYPE_CHROMIUM, "Chromium (Flatpak)", "/var/lib/flatpak/exports/bin/org.chromium.Chromium", "/var/lib/flatpak/exports/bin/org.chromium.Chromium"))
+        browsers.append(Browser(BROWSER_TYPE_FALKON, "Falkon", "falkon", "/usr/bin/falkon"))
         return browsers
 
     def delete_webbapp(self, webapp):
@@ -154,7 +155,7 @@ class WebAppManager():
         if os.path.exists(webapp.path):
             os.remove(webapp.path)
 
-    def create_webapp(self, name, url, icon, category, browser, isolate_profile=True, navbar=False):
+    def create_webapp(self, name, url, icon, category, browser, isolate_profile=True, navbar=False, privatewindow=False):
         # Generate a 4 digit random code (to prevent name collisions, so we can define multiple launchers with the same name)
 
         if browser.browser_type == BROWSER_TYPE_JAK:
@@ -162,70 +163,86 @@ class WebAppManager():
             build = Build(name, url, icon, category)
             build.start()
         else:
-            random_code =  ''.join(choice(string.digits) for _ in range(4))
+            random_code = ''.join(choice(string.digits) for _ in range(4))
             codename = "".join(filter(str.isalpha, name)) + random_code
             path = os.path.join(APPS_DIR, "webapp-%s.desktop" % codename)
 
-            with open(path, 'w') as desktop_file:
-                desktop_file.write("[Desktop Entry]\n")
-                desktop_file.write("Version=1.0\n")
-                desktop_file.write("Name=%s\n" % name)
-                desktop_file.write("Comment=%s\n" % _("Web App"))
+        with open(path, 'w') as desktop_file:
+            desktop_file.write("[Desktop Entry]\n")
+            desktop_file.write("Version=1.0\n")
+            desktop_file.write("Name=%s\n" % name)
+            desktop_file.write("Comment=%s\n" % _("Web App"))
 
-                if browser.browser_type in [BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK]:
-                    # Firefox based
-                    firefox_profiles_dir = FIREFOX_PROFILES_DIR if browser.browser_type == BROWSER_TYPE_FIREFOX else FIREFOX_FLATPAK_PROFILES_DIR
-                    firefox_profile_path = os.path.join(firefox_profiles_dir, codename)
-                    desktop_file.write("Exec=sh -c 'XAPP_FORCE_GTKWINDOW_ICON=" + icon + " " + browser.exec_path +
-                                        " --class WebApp-" + codename +
-                                        " --profile " + firefox_profile_path +
-                                        " --no-remote " + url + "'\n")
-                    # Create a Firefox profile
-                    shutil.copytree('/usr/share/webapp-manager/firefox/profile', firefox_profile_path)
-                    if navbar:
-                        shutil.copy('/usr/share/webapp-manager/firefox/userChrome-with-navbar.css', os.path.join(firefox_profile_path, "chrome", "userChrome.css"))             
-                
-                
-                elif browser.browser_type == BROWSER_TYPE_EPIPHANY:
-                    # Epiphany based
-                    epiphany_profile_path = os.path.join(EPIPHANY_PROFILES_DIR, "epiphany-" + codename)
-                    desktop_file.write("Exec=" + browser.exec_path +
-                                        " --application-mode " +
-                                        " --profile=\"" + epiphany_profile_path + "\"" +
-                                        " " + url + "\n")
-                else:
-                    # Chromium based
-                    if isolate_profile:
-                        profile_path = os.path.join(PROFILES_DIR, codename)
-                        desktop_file.write("Exec=" + browser.exec_path +
-                                            " --app=" + url +
-                                            " --class=WebApp-" + codename +
-                                            " --user-data-dir=" + profile_path + "\n")
-                    else:
-                        desktop_file.write("Exec=" + browser.exec_path +
-                                            " --app=" + url +
-                                            " --class=WebApp-" + codename + "\n")
-
-                desktop_file.write("Terminal=false\n")
-                desktop_file.write("X-MultipleArgs=false\n")
-                desktop_file.write("Type=Application\n")
-                desktop_file.write("Icon=%s\n" % icon)
-                desktop_file.write("Categories=GTK;%s;\n" % category)
-                desktop_file.write("MimeType=text/html;text/xml;application/xhtml_xml;\n")
-                desktop_file.write("StartupWMClass=WebApp-%s\n" % codename)
-                desktop_file.write("StartupNotify=true\n")
-                desktop_file.write("X-WebApp-URL=%s\n" % url)
+            if browser.browser_type in [BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK]:
+                # Firefox based
+                firefox_profiles_dir = FIREFOX_PROFILES_DIR if browser.browser_type == BROWSER_TYPE_FIREFOX else FIREFOX_FLATPAK_PROFILES_DIR
+                firefox_profile_path = os.path.join(
+                    firefox_profiles_dir, codename)
+                exec_string = ("Exec=sh -c 'XAPP_FORCE_GTKWINDOW_ICON=" + icon + " " + browser.exec_path +
+                               " --class WebApp-" + codename +
+                               " --profile " + firefox_profile_path +
+                               " --no-remote ")
+                if privatewindow:
+                    exec_string += "--private-window "
+                desktop_file.write(exec_string + url + "'\n")
+                # Create a Firefox profile
+                shutil.copytree(
+                    '/usr/share/webapp-manager/firefox/profile', firefox_profile_path)
+                if navbar:
+                    shutil.copy('/usr/share/webapp-manager/firefox/userChrome-with-navbar.css',
+                                os.path.join(firefox_profile_path, "chrome", "userChrome.css"))
+            elif browser.browser_type == BROWSER_TYPE_EPIPHANY:
+                # Epiphany based
+                epiphany_profile_path = os.path.join(
+                    EPIPHANY_PROFILES_DIR, "epiphany-" + codename)
+                desktop_file.write("Exec=" + browser.exec_path +
+                                   " --application-mode " +
+                                   " --profile=\"" + epiphany_profile_path + "\"" +
+                                   " " + url + "\n")
+            else:
+                # Chromium based
                 if isolate_profile:
-                    desktop_file.write("X-WebApp-Isolated=true\n")
+                    profile_path = os.path.join(PROFILES_DIR, codename)
+                    exec_string = ("Exec=" + browser.exec_path +
+                                   " --app=" + url +
+                                   " --class=WebApp-" + codename +
+                                   " --user-data-dir=" + profile_path)
                 else:
-                    desktop_file.write("X-WebApp-Isolated=false\n")
+                    exec_string = ("Exec=" + browser.exec_path +
+                                   " --app=" + url +
+                                   " --class=WebApp-" + codename)
 
-                if browser.browser_type == BROWSER_TYPE_EPIPHANY:
-                    # Move the desktop file and create a symlink
-                    new_path = os.path.join(epiphany_profile_path, "epiphany-%s.desktop" % codename)
-                    os.makedirs(epiphany_profile_path)
-                    os.replace(path, new_path)
-                    os.symlink(new_path, path)
+                if privatewindow:
+                    if browser.name == "Microsoft Edge":
+                        exec_string += " --inprivate"
+                    else:
+                        exec_string += " --incognito"
+
+                desktop_file.write(exec_string + "\n")
+
+            desktop_file.write("Terminal=false\n")
+            desktop_file.write("X-MultipleArgs=false\n")
+            desktop_file.write("Type=Application\n")
+            desktop_file.write("Icon=%s\n" % icon)
+            desktop_file.write("Categories=GTK;%s;\n" % category)
+            desktop_file.write(
+                "MimeType=text/html;text/xml;application/xhtml_xml;\n")
+            desktop_file.write("StartupWMClass=WebApp-%s\n" % codename)
+            desktop_file.write("StartupNotify=true\n")
+            desktop_file.write("X-WebApp-URL=%s\n" % url)
+            if isolate_profile:
+                desktop_file.write("X-WebApp-Isolated=true\n")
+            else:
+                desktop_file.write("X-WebApp-Isolated=false\n")
+
+            if browser.browser_type == BROWSER_TYPE_EPIPHANY:
+                # Move the desktop file and create a symlink
+                new_path = os.path.join(
+                    epiphany_profile_path, "epiphany-%s.desktop" % codename)
+                os.makedirs(epiphany_profile_path)
+                os.replace(path, new_path)
+                os.symlink(new_path, path)
+        
 
     def edit_webapp(self, path, name, url, icon, category):
         config = configparser.RawConfigParser()
