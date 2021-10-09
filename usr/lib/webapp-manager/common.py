@@ -167,11 +167,11 @@ class WebAppManager():
             codename = "".join(filter(str.isalpha, name)) + random_code
             path = os.path.join(APPS_DIR, "webapp-%s.desktop" % codename)
 
-        with open(path, 'w') as desktop_file:
-            desktop_file.write("[Desktop Entry]\n")
-            desktop_file.write("Version=1.0\n")
-            desktop_file.write("Name=%s\n" % name)
-            desktop_file.write("Comment=%s\n" % _("Web App"))
+            with open(path, 'w') as desktop_file:
+                desktop_file.write("[Desktop Entry]\n")
+                desktop_file.write("Version=1.0\n")
+                desktop_file.write("Name=%s\n" % name)
+                desktop_file.write("Comment=%s\n" % _("Web App"))
 
             if browser.browser_type in [BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK]:
                 # Firefox based
