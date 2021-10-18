@@ -419,7 +419,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="halign">center</property>
-                    <property name="label" translatable="yes">All native applications are isolated by default, they integrate with Pamac Software Center and can be removed under Add/Remove Programs entry.</property>
+                    <property name="label" translatable="yes">Native applications are isolated by default and install like any other program. They are integrated with Pamac (Add/Remove Software) and can be removed from there.</property>
                     <property name="justify">center</property>
                     <property name="wrap">True</property>
                   </object>
