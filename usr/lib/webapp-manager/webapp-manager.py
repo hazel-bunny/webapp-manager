@@ -17,7 +17,7 @@ gi.require_version("Gtk", "3.0")
 gi.require_version('XApp', '1.0')
 from gi.repository import Gtk, Gdk, Gio, XApp, GdkPixbuf, GLib
 
-from common import _async, idle, WebAppManager, Browser, download_favicon, ICONS_DIR, BROWSER_TYPE_FIREFOX
+from common import _async, idle, WebAppManager, Browser, download_favicon, ICONS_DIR, BROWSER_TYPE_FIREFOX, BROWSER_TYPE_JAK
 
 setproctitle.setproctitle("webapp-manager")
 
@@ -89,6 +89,7 @@ class WebAppManagerWindow():
         self.isolated_label = self.builder.get_object("isolated_label")
         self.navbar_switch = self.builder.get_object("navbar_switch")
         self.navbar_label = self.builder.get_object("navbar_label")
+        self.jak_label = self.builder.get_object("jak_label")
         self.privatewindow_switch = self.builder.get_object("privatewindow_switch")
         self.privatewindow_label = self.builder.get_object("privatewindow_label")
         self.spinner = self.builder.get_object("spinner")
@@ -422,6 +423,15 @@ class WebAppManagerWindow():
             self.navbar_switch.show()
             self.privatewindow_label.show()
             self.privatewindow_switch.show()
+            self.jak_label.hide()
+        elif (browser.browser_type == BROWSER_TYPE_JAK):
+            self.isolated_label.hide()
+            self.isolated_switch.hide()
+            self.navbar_label.hide()
+            self.navbar_switch.hide()
+            self.privatewindow_label.hide()
+            self.privatewindow_switch.hide()
+            self.jak_label.show()
         else:
             self.isolated_label.show()
             self.isolated_switch.show()
@@ -429,6 +439,7 @@ class WebAppManagerWindow():
             self.navbar_switch.hide()
             self.privatewindow_label.show()
             self.privatewindow_switch.show()
+            self.jak_label.hide()
 
     def on_name_entry(self, widget):
         self.toggle_ok_sensitivity()
