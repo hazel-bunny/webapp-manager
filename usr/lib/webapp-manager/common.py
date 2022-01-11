@@ -130,7 +130,7 @@ class WebAppManager():
     def get_supported_browsers(self):
         browsers = []
         # type, name, exec, test
-        browsers.append(Browser(BROWSER_TYPE_JAK, "Native App", "jak-cli", "/usr/bin/jak-cli"))
+        browsers.append(Browser(BROWSER_TYPE_JAK, "Native Application", "jak-cli", "/usr/bin/jak-cli"))
         browsers.append(Browser(BROWSER_TYPE_FIREFOX, "Firefox", "firefox", "/usr/bin/firefox"))
         browsers.append(Browser(BROWSER_TYPE_FIREFOX, "Firefox Developer Edition", "firefox-developer-edition", "/usr/bin/firefox-developer-edition"))
         browsers.append(Browser(BROWSER_TYPE_FIREFOX_FLATPAK, "Firefox (Flatpak)", "/var/lib/flatpak/exports/bin/org.mozilla.firefox", "/var/lib/flatpak/exports/bin/org.mozilla.firefox"))

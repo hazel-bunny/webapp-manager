@@ -1,5 +1,6 @@
 import os
 import re
+from getpass import getuser
 from subprocess import Popen
 from pathlib import Path
 import configparser
@@ -16,29 +17,29 @@ class Build():
 
     def find_pkg(self):
         version = "-1.0-1-any"
-        paths = (
+        pkgext = ".pkg.tar.zst"
+        makepkg_paths = (
             f"{str(Path.home())}/makepkg.conf",
             "/etc/makepkg.conf"
             )
-        for path in paths:
+        for path in makepkg_paths:
             if os.path.exists(path):
                 with open(path) as f:
                     sec = '[section]\n' + f.read()
                     config.read_string(sec)
-                    bp = config["section"]["PKGDEST"]
-                    pe = config["section"]["PKGEXT"]
-                    if not bp.endswith("/"):
-                        bp = bp + "/"
-                    if os.path.isfile(f"{bp}{self.package_name}{version}{pe}"):
-                        self.build_path = bp
-                        pkg_ext = pe
-                        break
-                    else:
-                        pkg_ext = ".pkg.tar.zst"
-            else:
-                pkg_ext = ".pkg.tar.zst"
-
-        return f"{self.build_path}{self.package_name}{version}{pkg_ext}"
+                    conf = config["section"]
+                    if config.has_option("section", "PKGDEST") and conf["PKGDEST"] != "":
+                        pkgdest = conf["PKGDEST"]
+                        if not pkgdest.endswith("/"):
+                            pkgdest = pkgdest + "/"
+                        self.build_path = pkgdest
+                    if config.has_option("section", "PKGEXT") and conf["PKGEXT"] != "":
+                        pkgext = conf["PKGEXT"]
+                break
+                                        
+        pkg = f"{self.build_path}{self.package_name}{version}{pkgext}".replace('"', '').replace("'", "")
+        print(pkg)
+        return pkg
 
 
     def build_desktop(self):
@@ -46,7 +47,7 @@ class Build():
             desktop_file.write("[Desktop Entry]\n")
             desktop_file.write("Version=1.0\n")
             desktop_file.write("Name=%s\n" % self.title)
-            desktop_file.write("Comment=User made web app\n")
+            desktop_file.write(f"Comment=User: {getuser()} webapp: {self.url} \n")
             desktop_file.write("Terminal=false\n")
             desktop_file.write("Type=Application\n")
             desktop_file.write("Icon=%s\n" % self.icon)
@@ -59,7 +60,7 @@ class Build():
            pkgbuild.write(f"pkgname={self.package_name}" + "\n")
            pkgbuild.write("pkgver=1.0\n")
            pkgbuild.write("pkgrel=1\n")
-           pkgbuild.write("pkgdesc='User made web app'\n")
+           pkgbuild.write(f"pkgdesc='User: {getuser()} webapp: {self.url} '\n")
            pkgbuild.write("arch=('any')\n")
            pkgbuild.write("license=('GPL')\n")
            pkgbuild.write(f"url='{self.url}'" + "\n")
@@ -70,7 +71,7 @@ class Build():
                cp "$srcdir/%s.desktop" $pkgdir/usr/share/applications
            }""" % self.package_name
            ) 
-        p = Popen([f"cd {self.build_path} && makepkg"], shell=True)
+        p = Popen([f"cd {self.build_path} && makepkg -f"], shell=True)
         p.wait()
         
     def install_package(self):

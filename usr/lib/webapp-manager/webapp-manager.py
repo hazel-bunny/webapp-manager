@@ -225,7 +225,7 @@ class WebAppManagerWindow():
         dlg.set_transient_for(self.window)
         dlg.set_title(_("About"))
         dlg.set_program_name(_("Web Apps"))
-        dlg.set_comments(_("Run websites as if they were apps"))
+        dlg.set_comments(_("Run websites as if they were apps, fork of LinuxMint webapp-manager."))
         try:
             h = open('/usr/share/common-licenses/GPL', encoding="utf-8")
             s = h.readlines()
@@ -240,7 +240,7 @@ class WebAppManagerWindow():
         dlg.set_version("__DEB_VERSION__")
         dlg.set_icon_name("webapp-manager")
         dlg.set_logo_icon_name("webapp-manager")
-        dlg.set_website("https://www.github.com/linuxmint/webapp-manager")
+        dlg.set_website("https://github.com/Manjaro-WebDad/webapp-manager")
         def close(w, res):
             if res == Gtk.ResponseType.CANCEL or res == Gtk.ResponseType.DELETE_EVENT:
                 w.destroy()
