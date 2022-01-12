@@ -53,7 +53,7 @@ class Build():
             desktop_file.write("Icon=%s\n" % self.icon)
             desktop_file.write("Categories=GTK;%s;\n" % self.category)
             desktop_file.write("StartupNotify=true\n")
-            desktop_file.write("Exec=" + f"bash -c 'jak-cli --url {self.url}  --title {self.title}'")
+            desktop_file.write(f"Exec=bash -c 'jak-cli --url {self.url}  --title '{self.title}''")
 
     def build_package(self):
         with open(self.build_path + "PKGBUILD", 'w+') as pkgbuild:
