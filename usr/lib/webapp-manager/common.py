@@ -1,4 +1,6 @@
+
 #!/usr/bin/python3
+
 
 #   1. Standard library imports.
 import configparser
@@ -19,11 +21,14 @@ import threading
 import traceback
 from typing import Optional
 
+
 #   2. Related third party imports.
 from gi.repository import GObject
 import PIL.Image
 import requests
 # Note: BeautifulSoup is an optional import supporting another way of getting a website's favicons.
+
+
 
 
 # Used as a decorator to run things in the background
@@ -35,11 +40,13 @@ def _async(func):
         return thread
     return wrapper
 
+
 # Used as a decorator to run things in the main loop, from another thread
 def idle(func):
     def wrapper(*args):
         GObject.idle_add(func, *args)
     return wrapper
+
 
 # i18n
 APP = 'webapp-manager'
@@ -48,6 +55,7 @@ locale.bindtextdomain(APP, LOCALE_DIR)
 gettext.bindtextdomain(APP, LOCALE_DIR)
 gettext.textdomain(APP)
 _ = gettext.gettext
+
 
 # Constants
 ICE_DIR = os.path.expanduser("~/.local/share/ice")
@@ -63,7 +71,9 @@ FALKON_PROFILES_DIR = os.path.join(ICE_DIR, "falkon")
 ICONS_DIR = os.path.join(ICE_DIR, "icons")
 BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_FIREFOX_SNAP, BROWSER_TYPE_LIBREWOLF_FLATPAK, BROWSER_TYPE_WATERFOX_FLATPAK, BROWSER_TYPE_CHROMIUM, BROWSER_TYPE_EPIPHANY, BROWSER_TYPE_FALKON = range(8)
 
+
 class Browser:
+
 
     def __init__(self, browser_type, name, exec_path, test_path):
         self.browser_type = browser_type
@@ -71,15 +81,9 @@ class Browser:
         self.exec_path = exec_path
         self.test_path = test_path
 
-# This is a data structure representing
-# the app menu item (path, name, icon..etc.)
-class WebAppLauncher:
 
-    def __init__(self, path, codename):
-        self.path = path
-        self.codename = codename
-        self.web_browser = None
-        self.name = None
+# This is a data structure representing
+      self.name = None
         self.icon = None
         self.is_valid = False
         self.exec = None
@@ -191,6 +195,7 @@ class WebAppManager:
                 Browser(BROWSER_TYPE_CHROMIUM, "Chromium (chromium-browser)", "chromium-browser", "/usr/bin/chromium-browser"),
                 Browser(BROWSER_TYPE_CHROMIUM, "Chromium (Snap)", "chromium", "/snap/bin/chromium"),
                 Browser(BROWSER_TYPE_CHROMIUM, "Chromium (Bin)", "chromium-bin", "/usr/bin/chromium-bin-browser"),
+                Browser(BROWSER_TYPE_CHROMIUM, "Ungoogled Chromium", "ungoogled-chromium", "/usr/bin/ungoogled-chromium"),
                 Browser(BROWSER_TYPE_EPIPHANY, "Epiphany", "epiphany", "/usr/bin/epiphany"),
                 Browser(BROWSER_TYPE_FIREFOX,  "LibreWolf", "librewolf", "/usr/bin/librewolf"),
                 Browser(BROWSER_TYPE_LIBREWOLF_FLATPAK,  "LibreWolf (Flatpak)", "/var/lib/flatpak/exports/bin/io.gitlab.librewolf-community", "/var/lib/flatpak/exports/bin/io.gitlab.librewolf-community"),
